@@ -2,12 +2,94 @@ import express from 'express'
 import cors from 'cors'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import fs from 'node:fs/promises'
+import { spawn } from 'node:child_process'
 
 const app = express()
 const PORT = process.env.PORT || 8787
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const projectRoot = path.resolve(__dirname, '..')
+
+function resolveSafePath(inputPath = '.') {
+	const resolved = path.resolve(projectRoot, inputPath)
+	if (!resolved.startsWith(projectRoot)) {
+		throw new Error('Invalid path outside project root')
+	}
+	return resolved
+}
+
 app.use(cors())
-app.use(express.json({ limit: '1mb' }))
+app.use(express.json({ limit: '5mb' }))
+
+// FS: list directory
+app.get('/api/fs/list', async (req, res) => {
+	try {
+		const p = (req.query.path ?? '.').toString()
+		const target = resolveSafePath(p)
+		const dirents = await fs.readdir(target, { withFileTypes: true })
+		const items = await Promise.all(dirents.map(async (d) => {
+			const abs = path.join(target, d.name)
+			const rel = path.relative(projectRoot, abs)
+			return { name: d.name, path: rel, type: d.isDirectory() ? 'dir' : 'file' }
+		}))
+		res.json({ path: path.relative(projectRoot, target), items })
+	} catch (e) {
+		res.status(400).json({ error: String(e?.message || e) })
+	}
+})
+
+// FS: read file
+app.get('/api/fs/read', async (req, res) => {
+	try {
+		const p = (req.query.path ?? '').toString()
+		if (!p) return res.status(400).json({ error: 'Missing path' })
+		const target = resolveSafePath(p)
+		const content = await fs.readFile(target, 'utf8')
+		res.json({ path: p, content })
+	} catch (e) {
+		res.status(400).json({ error: String(e?.message || e) })
+	}
+})
+
+// FS: write file
+app.post('/api/fs/write', async (req, res) => {
+	try {
+		const { path: p, content } = req.body || {}
+		if (!p || typeof content !== 'string') return res.status(400).json({ error: 'Missing path or content' })
+		const target = resolveSafePath(p)
+		await fs.mkdir(path.dirname(target), { recursive: true })
+		await fs.writeFile(target, content, 'utf8')
+		res.json({ ok: true })
+	} catch (e) {
+		res.status(400).json({ error: String(e?.message || e) })
+	}
+})
+
+// Exec: stream command output
+app.post('/api/exec', async (req, res) => {
+	try {
+		const { cmd, cwd } = req.body || {}
+		if (!cmd || typeof cmd !== 'string') return res.status(400).json({ error: 'Missing cmd' })
+		const workDir = resolveSafePath(cwd || '.')
+		res.setHeader('Content-Type', 'text/plain; charset=utf-8')
+		res.setHeader('Transfer-Encoding', 'chunked')
+		res.setHeader('Cache-Control', 'no-cache')
+		const child = spawn(cmd, { cwd: workDir, shell: true, env: process.env })
+		child.stdout.on('data', (d) => res.write(d))
+		child.stderr.on('data', (d) => res.write(d))
+		child.on('close', (code) => {
+			res.write(`\n[exit ${code}]`)
+			res.end()
+		})
+		child.on('error', (err) => {
+			res.write(String(err))
+			res.end()
+		})
+	} catch (e) {
+		res.status(400).end(String(e?.message || e))
+	}
+})
 
 app.post('/api/chat', async (req, res) => {
 	const apiKey = req.headers['x-api-key'] || process.env.MISTRAL_API_KEY
@@ -91,7 +173,6 @@ app.post('/api/chat', async (req, res) => {
 app.get('/api/health', (req, res) => res.json({ ok: true }))
 
 // Serve static in production
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = path.resolve(__dirname, '..')
 const distPath = path.join(root, 'dist')
 app.use(express.static(distPath))
