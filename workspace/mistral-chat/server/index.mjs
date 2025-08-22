@@ -66,6 +66,87 @@ app.post('/api/fs/write', async (req, res) => {
 	}
 })
 
+// FS: mkdir
+app.post('/api/fs/mkdir', async (req, res) => {
+	try {
+		const { path: p } = req.body || {}
+		if (!p) return res.status(400).json({ error: 'Missing path' })
+		const target = resolveSafePath(p)
+		await fs.mkdir(target, { recursive: true })
+		res.json({ ok: true })
+	} catch (e) {
+		res.status(400).json({ error: String(e?.message || e) })
+	}
+})
+
+// FS: rename/move
+app.post('/api/fs/rename', async (req, res) => {
+	try {
+		const { from, to } = req.body || {}
+		if (!from || !to) return res.status(400).json({ error: 'Missing from/to' })
+		const src = resolveSafePath(from)
+		const dst = resolveSafePath(to)
+		await fs.mkdir(path.dirname(dst), { recursive: true })
+		await fs.rename(src, dst)
+		res.json({ ok: true })
+	} catch (e) {
+		res.status(400).json({ error: String(e?.message || e) })
+	}
+})
+
+// FS: delete (file or dir)
+app.post('/api/fs/delete', async (req, res) => {
+	try {
+		const { path: p } = req.body || {}
+		if (!p) return res.status(400).json({ error: 'Missing path' })
+		const target = resolveSafePath(p)
+		await fs.rm(target, { recursive: true, force: true })
+		res.json({ ok: true })
+	} catch (e) {
+		res.status(400).json({ error: String(e?.message || e) })
+	}
+})
+
+// Search project
+app.get('/api/search', async (req, res) => {
+	const q = (req.query.q ?? '').toString()
+	if (!q) return res.status(400).json({ error: 'Missing q' })
+	const maxResults = 200
+	const results = []
+	const ignoreDirs = new Set(['node_modules', '.git', 'dist', 'build'])
+	async function walk(dir) {
+		const dirents = await fs.readdir(dir, { withFileTypes: true })
+		for (const d of dirents) {
+			const abs = path.join(dir, d.name)
+			const rel = path.relative(projectRoot, abs)
+			if (d.isDirectory()) {
+				if (ignoreDirs.has(d.name)) continue
+				await walk(abs)
+				if (results.length >= maxResults) return
+			} else {
+				try {
+					const text = await fs.readFile(abs, 'utf8')
+					const lines = text.split(/\r?\n/)
+					for (let i = 0; i < lines.length; i++) {
+						const col = lines[i].indexOf(q)
+						if (col !== -1) {
+							results.push({ path: rel, line: i + 1, column: col + 1, preview: lines[i].slice(Math.max(0, col - 40), col + q.length + 80) })
+							if (results.length >= maxResults) break
+						}
+					}
+				} catch {}
+			}
+			if (results.length >= maxResults) return
+		}
+	}
+	try {
+		await walk(projectRoot)
+		res.json({ q, results })
+	} catch (e) {
+		res.status(500).json({ error: String(e?.message || e) })
+	}
+})
+
 // Exec: stream command output
 app.post('/api/exec', async (req, res) => {
 	try {
@@ -89,6 +170,33 @@ app.post('/api/exec', async (req, res) => {
 	} catch (e) {
 		res.status(400).end(String(e?.message || e))
 	}
+})
+
+// NPM: scripts
+app.get('/api/npm/scripts', async (req, res) => {
+	try {
+		const pkgPath = resolveSafePath('package.json')
+		const raw = await fs.readFile(pkgPath, 'utf8')
+		const pkg = JSON.parse(raw)
+		res.json({ scripts: pkg.scripts || {} })
+	} catch (e) {
+		res.status(500).json({ error: String(e?.message || e) })
+	}
+})
+
+// NPM: install/uninstall via exec
+app.post('/api/npm/install', async (req, res) => {
+	const { pkg, dev } = req.body || {}
+	if (!pkg) return res.status(400).json({ error: 'Missing pkg' })
+	req.body = { cmd: `npm i ${dev ? '-D ' : ''}${pkg}`, cwd: '.' }
+	return app._router.handle(req, res, () => {}) // delegate to /api/exec
+})
+
+app.post('/api/npm/uninstall', async (req, res) => {
+	const { pkg } = req.body || {}
+	if (!pkg) return res.status(400).json({ error: 'Missing pkg' })
+	req.body = { cmd: `npm un ${pkg}`, cwd: '.' }
+	return app._router.handle(req, res, () => {})
 })
 
 app.post('/api/chat', async (req, res) => {
