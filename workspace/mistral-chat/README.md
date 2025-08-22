@@ -1,6 +1,6 @@
 # Mistral Chat UI
 
-[![Open in Bolt](https://img.shields.io/badge/Open%20in-Bolt.new-8A2BE2?logo=lightning&logoColor=white)](https://bolt.new/import?url=https%3A%2F%2Fgithub.com%2FYOUR_GITHUB_USERNAME%2Fmistral-chat)
+[![Open in Bolt](https://img.shields.io/badge/Open%20in-Bolt.new-8A2BE2?logo=lightning&logoColor=white)](https://bolt.new/import?url=https%3A%2F%2Fgithub.com%2Frosesareblack%2Fmister.git)
 
 A modern, open-source chat UI for Mistral that rivals Grok/ChatGPT experiences. Built with React, TypeScript, Vite, Tailwind, Zustand, and a minimal Node streaming proxy.
 
@@ -46,7 +46,7 @@ node server/index.mjs
 - Base path is set to `./` for subpath hosting.
 - Deploy with GitHub Actions (workflow included). After enabling Pages for the repo:
   - URL format: `https://<your-username>.github.io/<your-repo>/`
-  - Example: `https://rosesareblack.github.io/mistral-chat/`
+  - Example: `https://rosesareblack.github.io/mister/`
 
 ## Docker
 
