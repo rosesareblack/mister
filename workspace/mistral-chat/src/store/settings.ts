@@ -35,7 +35,7 @@ function save(state: Omit<SettingsState, 'update'>) {
 	} catch {}
 }
 
-export const useSettings = create<SettingsState>((set, get) => ({
+export const useSettings = create<SettingsState>((set, _get) => ({
 	...load(),
 	update: (partial) => set((s) => {
 		const next = { ...s, ...partial }

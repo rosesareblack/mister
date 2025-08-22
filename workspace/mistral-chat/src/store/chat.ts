@@ -46,7 +46,7 @@ function save(state: Pick<ChatState, 'conversations' | 'activeId'>) {
 	} catch {}
 }
 
-export const useChatStore = create<ChatState>((set, get) => ({
+export const useChatStore = create<ChatState>((set, _get) => ({
 	...load(),
 	createConversation: () => {
 		const id = nanoid()

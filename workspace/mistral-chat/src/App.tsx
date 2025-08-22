@@ -43,7 +43,8 @@ function App() {
 		appendMessage('user', text)
 		const assistant = appendMessage('assistant', '')
 		try {
-			await streamChat({ messages: (active?.messages ?? []).concat({ role: 'user', content: text }) }, {
+			const history = (active?.messages ?? []).map((m) => ({ role: m.role, content: m.content }))
+			await streamChat({ messages: history.concat({ role: 'user', content: text }) }, {
 				apiKey: settings.apiKey,
 				model: settings.model,
 				temperature: settings.temperature,

@@ -1,4 +1,5 @@
-import { useState, FormEvent, KeyboardEvent } from 'react'
+import { useState } from 'react'
+import type { FormEvent, KeyboardEvent } from 'react'
 import TextareaAutosize from 'react-textarea-autosize'
 import { Send } from 'lucide-react'
 
