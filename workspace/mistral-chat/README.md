@@ -1,5 +1,7 @@
 # Mistral Chat UI
 
+[![Open in Bolt](https://img.shields.io/badge/Open%20in-Bolt.new-8A2BE2?logo=lightning&logoColor=white)](https://bolt.new/import?url=https%3A%2F%2Fgithub.com%2FYOUR_GITHUB_USERNAME%2Fmistral-chat)
+
 A modern, open-source chat UI for Mistral that rivals Grok/ChatGPT experiences. Built with React, TypeScript, Vite, Tailwind, Zustand, and a minimal Node streaming proxy.
 
 ## Features
@@ -48,6 +50,12 @@ docker run -p 8787:8787 -e MISTRAL_API_KEY=your_key mistral-chat
 ```
 
 Open http://localhost:8787
+
+## Bolt.new
+
+- Click the badge above, or go to:
+  - `https://bolt.new/import?url=https://github.com/YOUR_GITHUB_USERNAME/mistral-chat`
+- Replace `YOUR_GITHUB_USERNAME` after you push this repo to GitHub.
 
 ## Configuration
 
