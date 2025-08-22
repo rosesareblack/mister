@@ -56,6 +56,8 @@ Open http://localhost:8787
 - Click the badge above, or go to:
   - `https://bolt.new/import?url=https://github.com/YOUR_GITHUB_USERNAME/mistral-chat`
 - Replace `YOUR_GITHUB_USERNAME` after you push this repo to GitHub.
+- Official Bolt.new repo (opens in Bolt):
+  - `https://bolt.new/import?url=https%3A%2F%2Fgithub.com%2Fstackblitz%2Fbolt.new.git`
 
 ## Configuration
 
