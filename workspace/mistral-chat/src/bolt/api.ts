@@ -83,3 +83,23 @@ export async function execStream(cmd: string, cwd = '.') {
 		},
 	}
 }
+
+// Git helpers
+export async function gitStatus() { const r = await fetch('/api/git/status'); if (!r.ok) throw new Error(await r.text()); return r.json() as Promise<{ text: string }> }
+export async function gitDiff(path?: string) { const r = await fetch('/api/git/diff' + (path ? `?path=${encodeURIComponent(path)}` : '')); if (!r.ok) throw new Error(await r.text()); return r.text() }
+export async function gitStage(paths: string[]) { const r = await fetch('/api/git/stage', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ paths })}); if (!r.ok) throw new Error(await r.text()); return r.json() }
+export async function gitUnstage(paths: string[]) { const r = await fetch('/api/git/unstage', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ paths })}); if (!r.ok) throw new Error(await r.text()); return r.json() }
+export async function gitCommit(message: string) { const r = await fetch('/api/git/commit', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ message })}); if (!r.ok) throw new Error(await r.text()); return r.json() }
+export async function gitBranches() { const r = await fetch('/api/git/branches'); if (!r.ok) throw new Error(await r.text()); return r.text() }
+export async function gitCheckout(ref: string) { const r = await fetch('/api/git/checkout', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ ref })}); if (!r.ok) throw new Error(await r.text()); return r.json() }
+export async function gitPush(remote='origin', branch?: string) { const r = await fetch('/api/git/push', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ remote, branch })}); if (!r.ok) throw new Error(await r.text()); return r.text() }
+export async function gitPull(remote='origin', branch?: string) { const r = await fetch('/api/git/pull', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ remote, branch })}); if (!r.ok) throw new Error(await r.text()); return r.text() }
+export async function gitInit() { const r = await fetch('/api/git/init', { method:'POST' }); if (!r.ok) throw new Error(await r.text()); return r.json() }
+
+export async function importClone(repo: string, dir?: string) { const r = await fetch('/api/import/clone', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ repo, dir })}); if (!r.ok) throw new Error(await r.text()); return r.text() }
+
+export async function createPullRequest(token: string, payload: { owner: string; repo: string; title: string; head: string; base?: string; body?: string }) {
+	const r = await fetch('/api/github/create-pr', { method:'POST', headers:{ 'Content-Type':'application/json', 'x-github-token': token }, body: JSON.stringify(payload) })
+	if (!r.ok) throw new Error(await r.text())
+	return r.json()
+}

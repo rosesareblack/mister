@@ -8,6 +8,7 @@ interface SettingsState {
 	temperature: number
 	system: string
 	theme: Theme
+	githubToken?: string
 	update: (partial: Partial<Omit<SettingsState, 'update'>>) => void
 }
 
@@ -24,6 +25,7 @@ function load(): Omit<SettingsState, 'update'> {
 		temperature: 0.7,
 		system: '',
 		theme: 'dark',
+		githubToken: '',
 	}
 }
 
@@ -37,7 +39,7 @@ export const useSettings = create<SettingsState>((set, get) => ({
 	...load(),
 	update: (partial) => set((s) => {
 		const next = { ...s, ...partial }
-		save({ apiKey: next.apiKey, model: next.model, temperature: next.temperature, system: next.system, theme: next.theme })
+		save({ apiKey: next.apiKey, model: next.model, temperature: next.temperature, system: next.system, theme: next.theme, githubToken: next.githubToken })
 		if (partial.theme) {
 			document.documentElement.dataset.theme = partial.theme
 		}

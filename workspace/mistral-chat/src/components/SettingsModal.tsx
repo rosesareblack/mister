@@ -8,6 +8,7 @@ export function SettingsModal({ open, onClose }: { open: boolean, onClose: () =>
 	const [temperature, setTemperature] = useState(settings.temperature)
 	const [system, setSystem] = useState(settings.system)
 	const [theme, setTheme] = useState(settings.theme)
+	const [githubToken, setGithubToken] = useState(settings.githubToken || '')
 
 	useEffect(() => {
 		if (open) {
@@ -16,11 +17,12 @@ export function SettingsModal({ open, onClose }: { open: boolean, onClose: () =>
 			setTemperature(settings.temperature)
 			setSystem(settings.system)
 			setTheme(settings.theme)
+			setGithubToken(settings.githubToken || '')
 		}
 	}, [open])
 
 	function save() {
-		useSettings.getState().update({ apiKey, model, temperature, system, theme })
+		useSettings.getState().update({ apiKey, model, temperature, system, theme, githubToken })
 		onClose()
 	}
 
@@ -31,7 +33,7 @@ export function SettingsModal({ open, onClose }: { open: boolean, onClose: () =>
 			<div className="w-full sm:max-w-lg bg-zinc-950 border border-zinc-800 rounded-t-xl sm:rounded-xl p-4 sm:p-6 space-y-4">
 				<div className="text-base font-semibold">Settings</div>
 				<div className="space-y-3">
-					<label className="block text-sm">API Key</label>
+					<label className="block text-sm">Mistral API Key</label>
 					<input type="password" value={apiKey} onChange={(e)=>setApiKey(e.target.value)} placeholder="sk-..." className="w-full bg-zinc-900 border border-zinc-800 rounded px-3 py-2 text-sm outline-none focus:border-zinc-700" />
 				</div>
 				<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -58,6 +60,10 @@ export function SettingsModal({ open, onClose }: { open: boolean, onClose: () =>
 				<div className="space-y-2">
 					<label className="block text-sm">System prompt</label>
 					<textarea value={system} onChange={(e)=>setSystem(e.target.value)} rows={3} className="w-full bg-zinc-900 border border-zinc-800 rounded px-3 py-2 text-sm outline-none focus:border-zinc-700" />
+				</div>
+				<div className="space-y-2">
+					<label className="block text-sm">GitHub Token (for PRs)</label>
+					<input type="password" value={githubToken} onChange={(e)=>setGithubToken(e.target.value)} placeholder="ghp_..." className="w-full bg-zinc-900 border border-zinc-800 rounded px-3 py-2 text-sm outline-none focus:border-zinc-700" />
 				</div>
 				<div className="flex items-center justify-end gap-3 pt-2">
 					<button onClick={onClose} className="px-3 py-2 rounded border border-zinc-800 hover:bg-zinc-900 text-sm">Cancel</button>
