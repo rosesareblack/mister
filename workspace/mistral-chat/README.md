@@ -41,6 +41,13 @@ Then run the server to serve the built assets:
 node server/index.mjs
 ```
 
+## GitHub Pages
+
+- Base path is set to `./` for subpath hosting.
+- Deploy with GitHub Actions (workflow included). After enabling Pages for the repo:
+  - URL format: `https://<your-username>.github.io/<your-repo>/`
+  - Example: `https://rosesareblack.github.io/mistral-chat/`
+
 ## Docker
 
 ```bash
